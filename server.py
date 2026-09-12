@@ -43,22 +43,29 @@ client: Optional[TelegramClient] = None
 async def lifespan(app: FastAPI):
     global client
     print("🔌 Connecting Pure Telegram Bot Client (In-Memory Session)...")
-    session = MemorySession()
-    client = TelegramClient(session, API_ID, API_HASH)
-    
-    if BOT_TOKEN and not BOT_TOKEN.startswith("7123456789"):
-        print("🤖 Starting with Pure BOT TOKEN Authentication...")
-        await client.start(bot_token=BOT_TOKEN)
-        print("✅ Telegram Bot connected successfully (Zero Disk Writes).")
-    else:
-        print("⚠️ BOT_TOKEN not set! Connecting session fallback...")
-        await client.connect()
-        print("✅ Client connected successfully.")
+    try:
+        session = MemorySession()
+        client = TelegramClient(session, API_ID, API_HASH)
+        
+        if BOT_TOKEN and not BOT_TOKEN.startswith("7123456789"):
+            print("🤖 Starting with Pure BOT TOKEN Authentication...")
+            await client.start(bot_token=BOT_TOKEN)
+            print("✅ Telegram Bot connected successfully (Zero Disk Writes).")
+        else:
+            print("⚠️ BOT_TOKEN not set! Connecting session fallback...")
+            await client.connect()
+            print("✅ Client connected successfully.")
+    except Exception as e:
+        print(f"⚠️ Telegram startup notice: {e}")
+        print("💡 Server started in Web/Auth mode. Telegram stream fallback active.")
 
     yield
     if client:
-        await client.disconnect()
-        print("🔌 Telegram Client disconnected.")
+        try:
+            await client.disconnect()
+            print("🔌 Telegram Client disconnected.")
+        except Exception:
+            pass
 
 app = FastAPI(title="Physics Study BD Streamer & Auth Server", lifespan=lifespan)
 
