@@ -1,79 +1,51 @@
 {
   "version": 2,
-  "cleanUrls": true,
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/stream",
-      "destination": "/api/index.py"
+      "src": "api/index.py",
+      "use": "@vercel/python"
     },
     {
-      "source": "/api/info",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/api/courses",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/api/auth/:path*",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/api/auth",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/login",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/register",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/verify-session",
-      "destination": "/api/index.py"
+      "src": "**",
+      "use": "@vercel/static"
     }
   ],
-  "headers": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        }
-      ]
+      "src": "/api/stream",
+      "dest": "api/index.py"
     },
     {
-      "source": "/(.*)\\.(js|css)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
+      "src": "/api/info",
+      "dest": "api/index.py"
     },
     {
-      "source": "/(.*)\\.(png|jpg|jpeg|gif|svg|woff2|woff)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400, stale-while-revalidate=604800"
-        }
-      ]
+      "src": "/api/courses",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/api/auth/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/api/auth",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/login",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/register",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/verify-session",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }
