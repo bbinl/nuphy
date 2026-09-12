@@ -3,24 +3,36 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/api/stream",
+      "destination": "/server.py"
+    },
+    {
+      "source": "/api/info",
+      "destination": "/server.py"
+    },
+    {
+      "source": "/api/courses",
+      "destination": "/server.py"
+    },
+    {
       "source": "/api/auth/:path*",
-      "destination": "/api/index.py"
+      "destination": "/server.py"
     },
     {
       "source": "/api/auth",
-      "destination": "/api/index.py"
+      "destination": "/server.py"
     },
     {
       "source": "/login",
-      "destination": "/api/index.py"
+      "destination": "/server.py"
     },
     {
       "source": "/register",
-      "destination": "/api/index.py"
+      "destination": "/server.py"
     },
     {
       "source": "/verify-session",
-      "destination": "/api/index.py"
+      "destination": "/server.py"
     }
   ],
   "headers": [
