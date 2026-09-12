@@ -180,30 +180,22 @@ from telethon.sessions import StringSession, MemorySession
 # 🤖 PURE TELEGRAM BOT CONFIGURATION (NO USER ACCOUNT NEEDED)
 # -------------------------------------------------------------
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8675378158:AAE9Vg3KpSXx6LtQgNIRUwuY2wBzkgaz8QA") 
-TELEGRAM_STRING_SESSION = os.getenv("TELEGRAM_STRING_SESSION", "1BVtsOHoBu0go0c5-US1tweYLDufq2f8ui4gTJ7gjUf72Au6gaeCw0MGGBwJ4IgEC3_qnwsQoEo1YSTF_7NGuvD-ekTMOdZOthn-hSeggeRLIqB2g1MV4JOMNCtUgA3Ls-GTGon4ThDa5iZpcDM-tQAgxQFtbmjMzhEget-CIaHZJDVDvq95AYhnaIFkrGJAMUgNGa5WIUE5iY9lOU-SEL8w1TcI_CZkTJsZAIMP-nbCRd4j8fj7wC6yL7nlBLjGnj_0f895NmXcJNSAPtZXlS9Ufz-bfO360_hfQMFX0czBnHC19yJ9a5MTSzHtI11WRDfOewslNdsRRw7kfffKZ2NElUyvyg-A=")
 
 client: Optional[TelegramClient] = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global client
-    print("🔌 Connecting Telegram Client...")
+    print("🔌 Connecting Pure Telegram Bot Client (In-Memory Session)...")
     try:
-        if TELEGRAM_STRING_SESSION:
-            print("🔑 Starting with Persistent StringSession (Zero Auth Rate Limits)...")
-            session = StringSession(TELEGRAM_STRING_SESSION)
-            client = TelegramClient(session, API_ID, API_HASH)
-            await client.connect()
-            print("✅ Telegram Client connected via StringSession.")
+        session = MemorySession()
+        client = TelegramClient(session, API_ID, API_HASH)
+        if BOT_TOKEN and not BOT_TOKEN.startswith("7123456789"):
+            print("🤖 Starting with Pure BOT TOKEN Authentication...")
+            await client.start(bot_token=BOT_TOKEN)
+            print("✅ Telegram Bot connected successfully.")
         else:
-            session = MemorySession()
-            client = TelegramClient(session, API_ID, API_HASH)
-            if BOT_TOKEN and not BOT_TOKEN.startswith("7123456789"):
-                print("🤖 Starting with Pure BOT TOKEN Authentication...")
-                await client.start(bot_token=BOT_TOKEN)
-                print("✅ Telegram Bot connected successfully.")
-            else:
-                await client.connect()
+            await client.connect()
     except Exception as e:
         print(f"⚠️ Telegram startup notice: {e}")
         print("💡 Server started in Web/Auth mode. Telegram stream fallback active.")
