@@ -84,21 +84,43 @@ def parse_tg_url(url: str):
 
 
 # -------------------------------------------------------------
-# 🔐 AUTH & USER SESSION ENDPOINTS
+# 🔐 AUTH & USER SESSION ENDPOINTS (ALL METHOD & ROUTE ALIASES)
 # -------------------------------------------------------------
-@app.post("/api/auth")
-@app.post("/api/auth/{action}")
+@app.api_route("/api/auth", methods=["GET", "POST", "OPTIONS"])
+@app.api_route("/api/auth/", methods=["GET", "POST", "OPTIONS"])
+@app.api_route("/api/auth/{action}", methods=["GET", "POST", "OPTIONS"])
+@app.api_route("/api/auth/{action}/", methods=["GET", "POST", "OPTIONS"])
+@app.api_route("/login", methods=["GET", "POST", "OPTIONS"])
+@app.api_route("/register", methods=["GET", "POST", "OPTIONS"])
+@app.api_route("/verify-session", methods=["GET", "POST", "OPTIONS"])
 async def auth_endpoint(request: Request, action: Optional[str] = None):
     """Handles register, login, verify-session, admin actions via Supabase RPC."""
+    if request.method == "OPTIONS":
+        return JSONResponse(
+            content={"ok": True},
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization"
+            }
+        )
     try:
         body = await request.json()
     except Exception:
         body = {}
     path = request.url.path
+    if not action:
+        clean = path.strip("/").split("/")[-1]
+        if clean != "auth":
+            action = clean
     if action and "action" not in body:
         body["action"] = action
     status_code, result = handle_auth_request(path, body)
-    return JSONResponse(content=result, status_code=status_code)
+    return JSONResponse(
+        content=result,
+        status_code=status_code,
+        headers={"Access-Control-Allow-Origin": "*"}
+    )
 
 
 # -------------------------------------------------------------
