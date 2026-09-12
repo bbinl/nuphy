@@ -4,35 +4,35 @@
   "rewrites": [
     {
       "source": "/api/stream",
-      "destination": "/server.py"
+      "destination": "/api/index.py"
     },
     {
       "source": "/api/info",
-      "destination": "/server.py"
+      "destination": "/api/index.py"
     },
     {
       "source": "/api/courses",
-      "destination": "/server.py"
+      "destination": "/api/index.py"
     },
     {
       "source": "/api/auth/:path*",
-      "destination": "/server.py"
+      "destination": "/api/index.py"
     },
     {
       "source": "/api/auth",
-      "destination": "/server.py"
+      "destination": "/api/index.py"
     },
     {
       "source": "/login",
-      "destination": "/server.py"
+      "destination": "/api/index.py"
     },
     {
       "source": "/register",
-      "destination": "/server.py"
+      "destination": "/api/index.py"
     },
     {
       "source": "/verify-session",
-      "destination": "/server.py"
+      "destination": "/api/index.py"
     }
   ],
   "headers": [
