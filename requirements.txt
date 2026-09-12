@@ -1,1 +1,6 @@
-requests
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+telethon>=1.30.0
+requests>=2.28.0
+aiofiles>=23.0.0
+chompjs>=1.2.0
