@@ -12,13 +12,155 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from telethon import TelegramClient
 from telethon.sessions import MemorySession
-
-# Ensure root directory in sys.path
+# Base Directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from api.index import handle_auth_request
+# ----------------------------------------------------
+# SUPABASE SECURE BACKEND CONFIGURATION
+# ----------------------------------------------------
+import hashlib
+import requests
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://qdcffakrgqwcutvrxduz.supabase.co")
+SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkY2ZmYWtyZ3F3Y3V0dnJ4ZHV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4OTYzNDUsImV4cCI6MjEwMzQ3MjM0NX0._IVl3F2i1TlSnLD6H7JqvVCgoTIy7jQaIdHIB_vAQLY")
+
+def clean_phone(raw: str) -> str:
+    if not raw:
+        return ""
+    digits = re.sub(r'[^0-9]', '', str(raw))
+    if digits.startswith('880'):
+        digits = digits[2:]
+    elif digits.startswith('88') and len(digits) == 13:
+        digits = digits[2:]
+    elif len(digits) == 10 and digits.startswith('1'):
+        digits = '0' + digits
+    return digits
+
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode('utf-8')).hexdigest()
+
+def call_supabase_rpc(function_name: str, params: dict):
+    endpoint = f"{SUPABASE_URL}/rest/v1/rpc/{function_name}"
+    headers = {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
+    }
+    try:
+        response = requests.post(endpoint, headers=headers, json=params, timeout=15)
+        try:
+            return response.status_code, response.json()
+        except Exception:
+            return response.status_code, {"success": False, "message": response.text}
+    except requests.exceptions.Timeout:
+        return 504, {"success": False, "error_type": "TIMEOUT", "message": "সার্ভার সংযোগে অতিরিক্ত সময় লাগছে (Gateway Timeout)।"}
+    except Exception as e:
+        return 500, {"success": False, "error_type": "NETWORK_ERROR", "message": f"সার্ভার সংযোগে সমস্যা: {str(e)}"}
+
+def handle_auth_request(path: str, body: dict):
+    clean_path = path.split('?')[0].lower().rstrip('/')
+    action = body.get("action", "").strip()
+    if not action:
+        action = clean_path.split('/')[-1]
+
+    if action == "register":
+        full_name = body.get("fullName", "").strip()
+        phone = clean_phone(body.get("phone", ""))
+        password = body.get("password", "")
+
+        if len(phone) != 11 or not phone.startswith("01"):
+            return 400, {"success": False, "message": "অনুগ্রহ করে সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 01XXXXXXXXX)"}
+        if not password or len(password) < 6:
+            return 400, {"success": False, "message": "পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে।"}
+        if not full_name:
+            return 400, {"success": False, "message": "অনুগ্রহ করে আপনার পুরো নাম লিখুন।"}
+
+        pwd_hash = hash_password(password)
+        return call_supabase_rpc("register_portal_user", {
+            "p_phone": phone,
+            "p_full_name": full_name,
+            "p_password_hash": pwd_hash
+        })
+
+    elif action == "login":
+        phone = clean_phone(body.get("phone", ""))
+        password = body.get("password", "")
+
+        if len(phone) != 11 or not phone.startswith("01"):
+            return 400, {"success": False, "message": "অনুগ্রহ করে সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 01XXXXXXXXX)"}
+        if not password:
+            return 400, {"success": False, "message": "পাসওয়ার্ড দিন।"}
+
+        pwd_hash = hash_password(password)
+        return call_supabase_rpc("login_portal_user", {
+            "p_phone": phone,
+            "p_password_hash": pwd_hash
+        })
+
+    elif action == "verify-session":
+        phone = clean_phone(body.get("phone", ""))
+        session_token = body.get("sessionToken", "")
+
+        if not phone or not session_token:
+            return 400, {"success": False, "valid": False, "message": "Invalid session data"}
+
+        return call_supabase_rpc("verify_user_session", {
+            "p_phone": phone,
+            "p_session_token": session_token
+        })
+
+    elif action == "admin-get-users":
+        admin_phone = clean_phone(body.get("adminPhone", ""))
+        session_token = body.get("sessionToken", "")
+
+        if not admin_phone or not session_token:
+            return 403, {"success": False, "message": "Invalid admin credentials"}
+
+        return call_supabase_rpc("admin_get_users", {
+            "p_admin_phone": admin_phone,
+            "p_session_token": session_token
+        })
+
+    elif action == "admin-update-user":
+        admin_phone = clean_phone(body.get("adminPhone", ""))
+        session_token = body.get("sessionToken", "")
+        target_id = body.get("targetId", "")
+        is_active = bool(body.get("isActive", False))
+        is_admin = bool(body.get("isAdmin", False))
+        is_locked = bool(body.get("isLocked", False))
+        reset_device = bool(body.get("resetDevice", False))
+
+        if not admin_phone or not session_token or not target_id:
+            return 403, {"success": False, "message": "Invalid admin credentials or target"}
+
+        return call_supabase_rpc("admin_update_user", {
+            "p_admin_phone": admin_phone,
+            "p_session_token": session_token,
+            "p_target_id": target_id,
+            "p_is_active": is_active,
+            "p_is_admin": is_admin,
+            "p_is_locked": is_locked,
+            "p_reset_device": reset_device
+        })
+
+    elif action == "admin-delete-user":
+        admin_phone = clean_phone(body.get("adminPhone", ""))
+        session_token = body.get("sessionToken", "")
+        target_id = body.get("targetId", "")
+
+        if not admin_phone or not session_token or not target_id:
+            return 403, {"success": False, "message": "Invalid admin credentials or target"}
+
+        return call_supabase_rpc("admin_delete_user", {
+            "p_admin_phone": admin_phone,
+            "p_session_token": session_token,
+            "p_target_id": target_id
+        })
+
+    return 404, {"success": False, "message": f"Unknown API action: '{action}'"}
+
 
 # Windows UTF-8 encoding
 if sys.platform.startswith('win'):
