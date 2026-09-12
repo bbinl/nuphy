@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physics Study BD - Premium Learning Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css?v=4.0">
+</head>
+
+<body>
+  <div id="app">
+    <!-- Mobile Sidebar Overlay Backdrop -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-logo-wrap">
+          <i class="fa-solid fa-atom brand-logo-icon"></i>
+        </div>
+        <div class="brand-info">
+          <div class="brand-title">Physics Study BD</div>
+          <div class="brand-subtitle"><span class="live-dot"></span> Smart Learning Hub</div>
+        </div>
+        <button class="sidebar-close-btn" id="sidebar-close-btn" onclick="closeMobileSidebar()"
+          title="মোট মেনু বন্ধ করুন">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Navigation Section -->
+      <div class="nav-section">
+        <div class="nav-label">মেইন মেনু</div>
+        <div class="nav-item active" id="nav-home" onclick="showHomeView()">
+          <div class="nav-icon-box"><i class="fa-solid fa-house"></i></div>
+          <span>সকল কোর্স</span>
+        </div>
+        <div class="nav-item" id="nav-bookmarks" onclick="showBookmarksView()">
+          <div class="nav-icon-box"><i class="fa-solid fa-bookmark"></i></div>
+          <span>বুকমার্কড লেকচার</span>
+          <span class="badge badge-purple" id="bookmark-count">0</span>
+        </div>
+        <div class="nav-item" id="nav-history" onclick="showHistoryView()">
+          <div class="nav-icon-box"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <span>ওয়াচ হিস্ট্রি</span>
+          <span class="badge badge-emerald" id="watched-count">0</span>
+        </div>
+        <div class="nav-item nav-admin-item hidden" id="nav-admin" onclick="showAdminView()">
+          <div class="nav-icon-box"><i class="fa-solid fa-shield-halved"></i></div>
+          <span>অ্যাডমিন প্যানেল</span>
+          <span class="badge badge-purple hidden" id="admin-pending-badge">0</span>
+        </div>
+      </div>
+
+      <!-- Course List Section -->
+      <div class="nav-section course-nav-section">
+        <div class="nav-label-row">
+          <span class="nav-label">কোর্স ব্রাউজার</span>
+          <span class="course-total-badge" id="sidebar-course-count">৯টি কোর্স</span>
+        </div>
+        <div class="sidebar-courses" id="sidebar-courses-list">
+          <!-- Dynamically populated with subject icons -->
+        </div>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="user-profile-card" id="sidebar-user-card">
+          <div class="user-avatar">
+            <i class="fa-solid fa-user-graduate"></i>
+          </div>
+          <div class="user-meta">
+            <span class="user-name" id="sidebar-user-name">শিক্ষার্থী একাউন্ট</span>
+            <span class="user-status" id="sidebar-user-status"><i class="fa-solid fa-circle"></i> প্রিমিয়াম একটিভ</span>
+          </div>
+          <button class="btn-sidebar-logout" id="btn-sidebar-logout" onclick="handleLogout()" title="লগআউট করুন">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-wrapper">
+      <!-- Top Navbar -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileSidebar()"
+            title="মেনু চালু/বন্ধ করুন">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="global-search" placeholder="কোর্স, অধ্যায় বা যেকোনো টপিক দিয়ে খুঁজুন..."
+              oninput="handleGlobalSearch()">
+            <span class="search-shortcut"><i class="fa-solid fa-keyboard"></i> Search</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="stats-card">
+            <div class="stat-icon-wrap stat-video">
+              <i class="fa-solid fa-play"></i>
+            </div>
+            <div class="stat-text">
+              <span class="stat-label">মোট লেকচার</span>
+              <strong class="stat-val" id="total-lectures-count">0</strong>
+            </div>
+          </div>
+
+          <div class="stats-card">
+            <div class="stat-icon-wrap stat-course">
+              <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div class="stat-text">
+              <span class="stat-label">অ্যাক্টিভ কোর্স</span>
+              <strong class="stat-val" id="total-courses-count">0</strong>
+            </div>
+          </div>
+
+          <button class="header-btn" onclick="toggleShortcutsModal()" title="Keyboard Shortcuts">
+            <i class="fa-solid fa-keyboard"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Body -->
+      <div class="content-body">
+
+        <!-- HOME VIEW -->
+        <div id="view-home">
+          <!-- Hero Banner -->
+          <div class="premium-hero-banner">
+            <div class="hero-content">
+              <div class="hero-tag"><i class="fa-solid fa-sparkles"></i> Physics Study BD Official Portal</div>
+              <h2 class="hero-title">আপনার জাতীয় বিশ্ববিদ্যালয় একাডেমিক কোর্স সম্ভার</h2>
+              <p class="hero-desc">সকল বর্ষের পদার্থবিজ্ঞান, গণিত, রসায়ন ও পরিসংখ্যানের পূর্ণাঙ্গ অধ্যায়ভিত্তিক ভিডিও
+                লেকচার এক জায়গায়। সহজে শিখুন, প্র্যাকটিস করুন এবং পরীক্ষায় সর্বোচ্চ প্রস্তুতি নিন।</p>
+              <div class="hero-stats-row">
+                <div class="hero-stat-item">
+                  <i class="fa-solid fa-circle-play"></i>
+                  <span>৫৫০+ হাই কোয়ালিটি লেকচার</span>
+                </div>
+                <div class="hero-stat-item">
+                  <i class="fa-solid fa-sliders"></i>
+                  <span>স্মার্ট ইন-প্লেয়ার কন্ট্রোল</span>
+                </div>
+                <div class="hero-stat-item">
+                  <i class="fa-solid fa-chart-line"></i>
+                  <span>অটোমেটিক প্রগ্রেস ট্র্যাকিং</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section Title -->
+          <div class="section-title-row">
+            <div class="section-title-group">
+              <h3 class="section-heading">সকল কোর্সসমূহ</h3>
+              <p class="section-subheading">যেকোনো একটি কোর্স সিলেক্ট করে সরাসরি লেকচার দেখা শুরু করুন</p>
+            </div>
+          </div>
+
+          <!-- Courses Grid -->
+          <div class="course-grid" id="course-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- PLAYER VIEW -->
+        <div id="view-player" class="hidden">
+          <div class="player-layout">
+            <!-- Left: Video Section -->
+            <div class="video-main-column">
+              <!-- Video Player Screen Wrapper with Ambient Cinema Glow -->
+              <div class="cinema-glow-wrap">
+                <div class="video-screen" id="video-screen-box" onmousemove="handlePlayerMouseMove()"
+                  onmouseleave="handlePlayerMouseLeave()">
+
+                  <!-- HTML5 Video Player for Telegram / API Stream -->
+                  <video id="html5-video-player" class="html5-video-player hidden" playsinline preload="metadata"></video>
+
+                  <!-- YouTube IFrame Embed (Strictly Cropped to Hide YouTube Elements) -->
+                  <div class="yt-embed-wrapper" id="yt-embed-wrapper">
+                    <div id="yt-player-host"></div>
+                  </div>
+
+                  <!-- Gesture & Touch Layer (Single Click: Play/Pause, Double Click: -10s/+10s Seek) -->
+                  <div class="player-gesture-layer" onclick="handleGestureClick(event)">
+                    <!-- Seek Animation Ripples (Icon Only) -->
+                    <div class="seek-ripple seek-left-ripple" id="seek-feedback-left" title="Rewind 10s">
+                      <i class="fa-solid fa-rotate-left"></i>
+                    </div>
+                    <div class="seek-ripple seek-right-ripple" id="seek-feedback-right" title="Forward 10s">
+                      <i class="fa-solid fa-rotate-right"></i>
+                    </div>
+                    <!-- Center Play/Pause Indicator -->
+                    <div class="center-play-indicator" id="center-play-indicator">
+                      <i class="fa-solid fa-play" id="center-play-icon"></i>
+                    </div>
+                  </div>
+
+                  <!-- In-Player Top Bar Overlay -->
+                  <div class="custom-player-topbar" id="player-topbar">
+                    <div class="player-title-info">
+                      <span class="video-badge-hd" id="player-stream-badge"><i class="fa-solid fa-shield-halved"></i> HD 1080p</span>
+                      <span class="video-overlay-title" id="overlay-video-title">Physics Study BD Video</span>
+                    </div>
+                  </div>
+
+                  <!-- In-Player Bottom Controls Bar Overlay -->
+                  <div class="custom-player-controls" id="player-controls">
+                    <!-- Progress Bar / Seek Slider -->
+                    <div class="custom-progressbar-wrap" onmousemove="handleProgressHover(event)"
+                      onclick="handleProgressClick(event)">
+                      <div class="progress-buffered" id="progress-buffered"></div>
+                      <div class="progress-played" id="progress-played"></div>
+                      <div class="progress-thumb" id="progress-thumb"></div>
+                      <div class="progress-hover-time" id="progress-hover-time">00:00</div>
+                    </div>
+
+                    <!-- Controls Action Row -->
+                    <div class="controls-action-row">
+                      <!-- Left Controls -->
+                      <div class="controls-left-group">
+                        <button class="player-ctrl-btn play-main-btn" id="ctrl-play-pause" onclick="togglePlayPause()"
+                          title="Play/Pause (Space)">
+                          <i class="fa-solid fa-play" id="ctrl-play-icon"></i>
+                        </button>
+
+                        <button class="player-ctrl-btn" onclick="seekRelative(-10)" title="Rewind 10s (Left Arrow)">
+                          <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+
+                        <button class="player-ctrl-btn" onclick="seekRelative(10)" title="Forward 10s (Right Arrow)">
+                          <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+
+                        <div class="vol-control-group">
+                          <button class="player-ctrl-btn" id="ctrl-vol-btn" onclick="toggleMute()"
+                            title="Mute/Unmute (M)">
+                            <i class="fa-solid fa-volume-high" id="ctrl-vol-icon"></i>
+                          </button>
+                        </div>
+
+                        <div class="time-badge">
+                          <span id="ctrl-time-text">00:00 / 00:00</span>
+                        </div>
+                      </div>
+
+                      <!-- Right Controls -->
+                      <div class="controls-right-group">
+                        <!-- Quality Selector Dropup -->
+                        <div class="player-dropup">
+                          <button class="player-ctrl-btn quality-indicator" id="ctrl-quality-btn"
+                            onclick="toggleQualityMenu(event)" title="Video Quality">
+                            <i class="fa-solid fa-sliders"></i>
+                            <span id="current-quality-label">1080p</span>
+                          </button>
+                          <div class="dropup-content" id="quality-dropup-menu">
+                            <div class="dropup-header">ভিডিও কোয়ালিটি</div>
+                            <div class="dropup-item active" onclick="setQuality('hd1080', '1080p')"><i
+                                class="fa-solid fa-check"></i> 1080p (Full HD)</div>
+                            <div class="dropup-item" onclick="setQuality('hd720', '720p')"><i
+                                class="fa-solid fa-check"></i> 720p (HD)</div>
+                            <div class="dropup-item" onclick="setQuality('large', '480p')"><i
+                                class="fa-solid fa-check"></i> 480p</div>
+                            <div class="dropup-item" onclick="setQuality('medium', '360p')"><i
+                                class="fa-solid fa-check"></i> 360p</div>
+                            <div class="dropup-item" onclick="setQuality('default', 'Auto')"><i
+                                class="fa-solid fa-check"></i> Auto</div>
+                          </div>
+                        </div>
+
+                        <!-- Playback Speed Dropup -->
+                        <div class="player-dropup">
+                          <button class="player-ctrl-btn speed-indicator" id="ctrl-speed-btn"
+                            onclick="toggleSpeedMenu(event)" title="Playback Speed">
+                            <i class="fa-solid fa-gauge-high"></i>
+                            <span id="current-speed-label">1x</span>
+                          </button>
+                          <div class="dropup-content" id="speed-dropup-menu">
+                            <div class="dropup-header">প্লেব্যাক স্পিড</div>
+                            <div class="dropup-item" onclick="setSpeed(0.5)"><i class="fa-solid fa-check"></i> 0.5x
+                            </div>
+                            <div class="dropup-item" onclick="setSpeed(0.75)"><i class="fa-solid fa-check"></i> 0.75x
+                            </div>
+                            <div class="dropup-item active" onclick="setSpeed(1)"><i class="fa-solid fa-check"></i> 1x
+                              (Normal)</div>
+                            <div class="dropup-item" onclick="setSpeed(1.25)"><i class="fa-solid fa-check"></i> 1.25x
+                            </div>
+                            <div class="dropup-item" onclick="setSpeed(1.5)"><i class="fa-solid fa-check"></i> 1.5x
+                            </div>
+                            <div class="dropup-item" onclick="setSpeed(2)"><i class="fa-solid fa-check"></i> 2x</div>
+                          </div>
+                        </div>
+
+                        <!-- Fullscreen Toggle Button -->
+                        <button class="player-ctrl-btn fs-btn" onclick="toggleCustomFullscreen()"
+                          title="Full Screen (F)">
+                          <i class="fa-solid fa-expand" id="ctrl-fs-icon"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Initial Video Placeholder -->
+                  <div id="video-placeholder" class="video-placeholder">
+                    <div class="placeholder-icon-wrap">
+                      <i class="fa-solid fa-film"></i>
+                    </div>
+                    <h4>ভিডিও লোড হচ্ছে...</h4>
+                    <p>ডান পাশের প্লেলিস্ট থেকে অধ্যায় নির্বাচন করুন</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Video Meta Card -->
+              <div class="video-meta-card">
+                <div class="meta-top-row">
+                  <div class="meta-breadcrumbs-wrap">
+                    <span class="crumb-pill" id="player-course-pill"><i class="fa-solid fa-book"></i> কোর্স</span>
+                    <span class="crumb-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+                    <span class="crumb-text" id="player-chapter-text">অধ্যায়</span>
+                  </div>
+                  <div class="video-action-pills">
+                    <button class="action-pill-btn" id="btn-bookmark" onclick="toggleBookmarkCurrent()"
+                      title="Bookmark this lecture">
+                      <i class="fa-regular fa-bookmark" id="bookmark-btn-icon"></i>
+                      <span>Bookmark</span>
+                    </button>
+                    <button class="action-pill-btn action-pill-primary" id="btn-watched"
+                      onclick="markCurrentAsWatched()" title="Mark as Watched">
+                      <i class="fa-solid fa-circle-check"></i>
+                      <span>Watched</span>
+                    </button>
+                  </div>
+                </div>
+
+                <h2 class="current-lecture-heading" id="player-video-title">লেকচার নির্বাচন করুন</h2>
+
+                <div class="lecture-nav-row">
+                  <button class="lec-nav-btn" onclick="playPreviousLecture()">
+                    <i class="fa-solid fa-backward-step"></i> পূর্ববর্তী লেকচার
+                  </button>
+                  <button class="lec-nav-btn" onclick="playNextLecture()">
+                    পরবর্তী লেকচার <i class="fa-solid fa-forward-step"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Chapter Playlist Column -->
+            <div class="playlist-main-column">
+              <div class="playlist-card">
+                <div class="playlist-card-header">
+                  <div class="playlist-header-left">
+                    <h3 id="playlist-course-title">কোর্স সিলেবাস</h3>
+                    <div class="playlist-stats" id="playlist-subtitle">অধ্যায় ও লেকচার তালিকা</div>
+                  </div>
+                  <div class="playlist-progress-circle" id="course-progress-badge">
+                    <span id="course-progress-text">০%</span>
+                  </div>
+                </div>
+
+                <div class="playlist-accordion-body" id="playlist-accordion-container">
+                  <!-- Dynamically populated chapters and lectures -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEARCH RESULTS VIEW -->
+        <div id="view-search-results" class="hidden">
+          <div class="section-title-row">
+            <div class="section-title-group">
+              <h3 class="section-heading" id="search-title">অনুসন্ধান ফলাফল</h3>
+              <p class="section-subheading">নিচে আপনার সার্চের সাথে সম্পর্কিত সকল লেকচার দেওয়া হলো</p>
+            </div>
+          </div>
+          <div id="search-results-list" class="course-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- ADMIN PANEL VIEW -->
+        <div id="view-admin" class="hidden">
+          <!-- Admin Hero Header -->
+          <div class="admin-hero-banner">
+            <div class="admin-hero-left">
+              <div class="admin-badge"><i class="fa-solid fa-shield-halved"></i> Super Admin Panel</div>
+              <h2 class="admin-hero-title">শিক্ষার্থী ও পারমিশন কন্ট্রোল ড্যাশবোর্ড</h2>
+              <p class="admin-hero-desc">নতুন শিক্ষার্থীদের অনুমোদন দিন, একাউন্ট লক/আনলক করুন, রোল পরিবর্তন ও ডিভাইস লক
+                রিসেট করুন।</p>
+            </div>
+            <div class="admin-hero-actions">
+              <button class="admin-btn-primary" onclick="loadAdminUsers()">
+                <i class="fa-solid fa-rotate"></i> রিফ্রেশ ডাটা
+              </button>
+            </div>
+          </div>
+
+          <!-- Admin Stats Cards Grid -->
+          <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+              <div class="admin-stat-icon stat-icon-blue"><i class="fa-solid fa-users"></i></div>
+              <div class="admin-stat-meta">
+                <span class="admin-stat-label">মোট শিক্ষার্থী</span>
+                <strong class="admin-stat-value" id="stat-total-users">0</strong>
+              </div>
+            </div>
+
+            <div class="admin-stat-card">
+              <div class="admin-stat-icon stat-icon-amber"><i class="fa-solid fa-user-clock"></i></div>
+              <div class="admin-stat-meta">
+                <span class="admin-stat-label">পেন্ডিং / লকড</span>
+                <strong class="admin-stat-value" id="stat-pending-users">0</strong>
+              </div>
+            </div>
+
+            <div class="admin-stat-card">
+              <div class="admin-stat-icon stat-icon-green"><i class="fa-solid fa-user-check"></i></div>
+              <div class="admin-stat-meta">
+                <span class="admin-stat-label">সক্রিয় শিক্ষার্থী</span>
+                <strong class="admin-stat-value" id="stat-active-users">0</strong>
+              </div>
+            </div>
+
+            <div class="admin-stat-card">
+              <div class="admin-stat-icon stat-icon-purple"><i class="fa-solid fa-shield-halved"></i></div>
+              <div class="admin-stat-meta">
+                <span class="admin-stat-label">অ্যাডমিন</span>
+                <strong class="admin-stat-value" id="stat-admin-users">0</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin Search & Filter Bar -->
+          <div class="admin-toolbar">
+            <div class="admin-search-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="admin-user-search" placeholder="ফোন নম্বর অথবা নাম দিয়ে খুঁজুন..."
+                oninput="filterAdminUsers()">
+            </div>
+
+            <div class="admin-filter-chips">
+              <button class="admin-chip active" data-filter="all" onclick="setAdminFilter('all', this)">সকল
+                (All)</button>
+              <button class="admin-chip" data-filter="pending" onclick="setAdminFilter('pending', this)">পেন্ডিং /
+                লকড</button>
+              <button class="admin-chip" data-filter="active" onclick="setAdminFilter('active', this)">সক্রিয়</button>
+              <button class="admin-chip" data-filter="admin" onclick="setAdminFilter('admin', this)">অ্যাডমিন</button>
+            </div>
+          </div>
+
+          <!-- User Cards / Table List Container -->
+          <div class="admin-users-container" id="admin-users-list">
+            <!-- Dynamically populated user management cards -->
+            <div class="admin-loading-placeholder">
+              <i class="fa-solid fa-circle-notch fa-spin"></i>
+              <span>ইউজার তালিকা লোড হচ্ছে...</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <div class="toast-icon-wrap"><i class="fa-solid fa-circle-check"></i></div>
+    <span id="toast-message">সফলভাবে সম্পন্ন হয়েছে!</span>
+  </div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div id="shortcuts-modal" class="shortcuts-modal-overlay" onclick="closeShortcutsModal(event)">
+    <div class="shortcuts-modal-card">
+      <div class="modal-header">
+        <h4><i class="fa-solid fa-keyboard"></i> কিবোর্ড শর্টকাটস</h4>
+        <button class="modal-close-btn" onclick="toggleShortcutsModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="shortcuts-grid">
+        <div class="shortcut-item"><kbd>Space</kbd> <span>প্লে / পজ (Play / Pause)</span></div>
+        <div class="shortcut-item"><kbd>→</kbd> <span>১০ সেকেন্ড এগিয়ে যান (+10s)</span></div>
+        <div class="shortcut-item"><kbd>←</kbd> <span>১০ সেকেন্ড পিছিয়ে যান (-10s)</span></div>
+        <div class="shortcut-item"><kbd>F</kbd> <span>ফুলস্ক্রিন মোড (Fullscreen)</span></div>
+        <div class="shortcut-item"><kbd>M</kbd> <span>মিউট / আনমিউট (Mute/Unmute)</span></div>
+        <div class="shortcut-item"><kbd>Double Click</kbd> <span>ডাবল ক্লিক করে সিক করুন</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Authentication Modal Overlay -->
+  <div id="auth-modal" class="auth-modal-overlay">
+    <div class="auth-modal-card">
+      <div class="auth-card-header">
+        <div class="auth-brand-logo">
+          <i class="fa-solid fa-atom"></i>
+        </div>
+        <h3 class="auth-brand-title">Physics Study BD</h3>
+        <p class="auth-brand-subtitle">জাতীয় বিশ্ববিদ্যালয় প্রিমিয়াম লার্নিং পোর্টাল</p>
+      </div>
+
+      <!-- Auth Tabs Switcher -->
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab-btn active" id="tab-login-btn" onclick="switchAuthTab('login')">
+          <i class="fa-solid fa-right-to-bracket"></i> লগইন (Login)
+        </button>
+        <button type="button" class="auth-tab-btn" id="tab-register-btn" onclick="switchAuthTab('register')">
+          <i class="fa-solid fa-user-plus"></i> রেজিস্ট্রেশন (Register)
+        </button>
+      </div>
+
+      <!-- Alert / Notice Box -->
+      <div id="auth-alert" class="auth-alert hidden">
+        <div class="auth-alert-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+        <div class="auth-alert-content" id="auth-alert-message">ত্রুটি ঘটেছে</div>
+      </div>
+
+      <!-- Auth Form -->
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+        <!-- Full Name (Register Only) -->
+        <div class="form-group hidden" id="group-fullname">
+          <label for="auth-fullname"><i class="fa-solid fa-user"></i> আপনার পূর্ণ নাম</label>
+          <div class="input-wrap">
+            <input type="text" id="auth-fullname" placeholder="যেমন: মো: রহিম আহমেদ" autocomplete="name">
+          </div>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="form-group">
+          <label for="auth-phone"><i class="fa-solid fa-phone"></i> মোবাইল নম্বর</label>
+          <div class="input-wrap">
+            <span class="input-prefix">+88</span>
+            <input type="tel" id="auth-phone" placeholder="017XXXXXXXX" maxlength="11" required autocomplete="tel">
+          </div>
+          <span class="field-hint">রেজিস্টার্ড ফোন নম্বর প্রদান করুন (যেমন: 01XXXXXXXXX)</span>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="auth-password"><i class="fa-solid fa-lock"></i> পাসওয়ার্ড</label>
+          <div class="input-wrap">
+            <input type="password" id="auth-password" placeholder="কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড" required
+              autocomplete="current-password">
+            <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('auth-password', this)"
+              title="পাসওয়ার্ড দেখুন">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Confirm Password (Register Only) -->
+        <div class="form-group hidden" id="group-confirm-password">
+          <label for="auth-confirm-password"><i class="fa-solid fa-shield-check"></i> পাসওয়ার্ড নিশ্চিত করুন</label>
+          <div class="input-wrap">
+            <input type="password" id="auth-confirm-password" placeholder="পুনরায় পাসওয়ার্ড লিখুন"
+              autocomplete="new-password">
+            <button type="button" class="btn-toggle-password"
+              onclick="togglePasswordVisibility('auth-confirm-password', this)" title="পাসওয়ার্ড দেখুন">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="auth-submit-btn" id="auth-submit-btn">
+          <span class="btn-text" id="auth-submit-text"><i class="fa-solid fa-right-to-bracket"></i> লগইন করুন</span>
+          <div class="btn-spinner hidden" id="auth-submit-spinner">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+          </div>
+        </button>
+      </form>
+
+      <!-- Auth Footer Info -->
+      <div class="auth-footer-help">
+        <p><i class="fa-solid fa-circle-info"></i> একসাথে একাধিক ডিভাইসে লগইন করা যাবে না।</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Framework & Security Bundle -->
+  <script src="core.bundle.e3b1c9.js"></script>
+  <!-- Application Runtime Chunk Engine -->
+  <script src="runtime.chunk.08a7f4.js"></script>
+  <!-- Main Application Logic -->
+  <script src="app.js"></script>
+  <!-- YouTube Player Engine -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+</body>
+
+</html>
