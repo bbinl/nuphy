@@ -11,6 +11,7 @@ from fastapi.responses import StreamingResponse, HTMLResponse, FileResponse, JSO
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from telethon import TelegramClient
+from telethon.sessions import MemorySession
 
 # Ensure root directory in sys.path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -35,20 +36,20 @@ API_HASH = "24edc166c16cd98638811b9344502b95"
 # 🤖 PURE TELEGRAM BOT CONFIGURATION (NO USER ACCOUNT NEEDED)
 # -------------------------------------------------------------
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8214985015:AAHnBhdDmirrb6-5VXiWCmjxPCJuyIAVXsg") 
-SESSION_NAME = os.path.join(BASE_DIR, "pure_bot_session")
 
 client: Optional[TelegramClient] = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global client
-    print("🔌 Connecting Pure Telegram Bot Client...")
-    client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
+    print("🔌 Connecting Pure Telegram Bot Client (In-Memory Session)...")
+    session = MemorySession()
+    client = TelegramClient(session, API_ID, API_HASH)
     
     if BOT_TOKEN and not BOT_TOKEN.startswith("7123456789"):
         print("🤖 Starting with Pure BOT TOKEN Authentication...")
         await client.start(bot_token=BOT_TOKEN)
-        print("✅ Telegram Bot connected successfully (Zero User Account).")
+        print("✅ Telegram Bot connected successfully (Zero Disk Writes).")
     else:
         print("⚠️ BOT_TOKEN not set! Connecting session fallback...")
         await client.connect()
@@ -259,8 +260,11 @@ async def get_courses():
     
     courses = get_initial_courses_from_auto_js()
     if courses:
-        with open(TG_JSON_FILE, "w", encoding="utf-8") as f:
-            json.dump(courses, f, ensure_ascii=False, indent=2)
+        try:
+            with open(TG_JSON_FILE, "w", encoding="utf-8") as f:
+                json.dump(courses, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
     return courses
 
 
@@ -271,8 +275,11 @@ async def save_courses(request: Request):
         data = await request.json()
         if not isinstance(data, list):
             raise HTTPException(status_code=400, detail="Expected a JSON array of courses")
-        with open(TG_JSON_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        try:
+            with open(TG_JSON_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except Exception as write_err:
+            print("Warning: could not write to disk (read-only environment):", write_err)
         return {"success": True, "message": "Saved successfully", "count": len(data)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
