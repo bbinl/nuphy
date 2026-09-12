@@ -1683,7 +1683,6 @@ function renderPlaylistAccordion(course, courseIdx, autoPlayFirst = true, target
         const isWatched = watchHistory.some(w => w.url === lec.url);
         const lecItem = document.createElement('div');
         lecItem.className = `lecture-item ${isWatched ? 'completed' : ''} ${targetUrl === lec.url ? 'active' : ''}`;
-        lecItem.dataset.url = lec.url;
         lecItem.onclick = () => playVideo(lec.url, lec.lecture, chName, null, courseIdx, null, true, lec.tg_url);
         
         const tgIcon = lec.tg_url ? `<i class="fa-brands fa-telegram" style="color: #38bdf8; margin-left: auto; font-size: 13px;" title="Telegram Stream"></i>` : '';
@@ -1709,7 +1708,6 @@ function renderPlaylistAccordion(course, courseIdx, autoPlayFirst = true, target
             const isWatched = watchHistory.some(w => w.url === lec.url);
             const lecItem = document.createElement('div');
             lecItem.className = `lecture-item ${isWatched ? 'completed' : ''} ${targetUrl === lec.url ? 'active' : ''}`;
-            lecItem.dataset.url = lec.url;
             lecItem.onclick = () => playVideo(lec.url, lec.lecture, chName, subName, courseIdx, null, true, lec.tg_url);
             
             const tgIcon = lec.tg_url ? `<i class="fa-brands fa-telegram" style="color: #38bdf8; margin-left: auto; font-size: 13px;" title="Telegram Stream"></i>` : '';
