@@ -306,10 +306,16 @@ function setupHtml5VideoEvents() {
   });
 
   v.addEventListener('error', (e) => {
-    if (currentStreamMode === 'telegram' && currentPlayingLec && currentPlayingLec.url) {
-      console.warn("Telegram video stream error/unavailable, switching to YouTube:", e);
-      showToast("টেলিগ্রাম স্ট্রিম সাময়িক অনুপলব্ধ, ইউটিউবে চালানো হচ্ছে...");
-      switchToYouTube(currentPlayingLec.url, v.currentTime || 0);
+    if (currentStreamMode === 'telegram') {
+      console.warn("Telegram video stream loading/connecting...", e);
+      // Only fallback if no valid telegram URL
+      if (!currentPlayingLec || !currentPlayingLec.tg_url) {
+        if (currentPlayingLec && currentPlayingLec.url) {
+          switchToYouTube(currentPlayingLec.url, v.currentTime || 0);
+        }
+      } else {
+        showToast("টেলিগ্রাম থেকে ভিডিও লোড হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...");
+      }
     }
   });
 
@@ -1683,6 +1689,8 @@ function renderPlaylistAccordion(course, courseIdx, autoPlayFirst = true, target
         const isWatched = watchHistory.some(w => w.url === lec.url);
         const lecItem = document.createElement('div');
         lecItem.className = `lecture-item ${isWatched ? 'completed' : ''} ${targetUrl === lec.url ? 'active' : ''}`;
+        lecItem._lecUrl = lec.url;
+        lecItem._lecTgUrl = lec.tg_url;
         lecItem.onclick = () => playVideo(lec.url, lec.lecture, chName, null, courseIdx, null, true, lec.tg_url);
         
         const tgIcon = lec.tg_url ? `<i class="fa-brands fa-telegram" style="color: #38bdf8; margin-left: auto; font-size: 13px;" title="Telegram Stream"></i>` : '';
@@ -1708,6 +1716,8 @@ function renderPlaylistAccordion(course, courseIdx, autoPlayFirst = true, target
             const isWatched = watchHistory.some(w => w.url === lec.url);
             const lecItem = document.createElement('div');
             lecItem.className = `lecture-item ${isWatched ? 'completed' : ''} ${targetUrl === lec.url ? 'active' : ''}`;
+            lecItem._lecUrl = lec.url;
+            lecItem._lecTgUrl = lec.tg_url;
             lecItem.onclick = () => playVideo(lec.url, lec.lecture, chName, subName, courseIdx, null, true, lec.tg_url);
             
             const tgIcon = lec.tg_url ? `<i class="fa-brands fa-telegram" style="color: #38bdf8; margin-left: auto; font-size: 13px;" title="Telegram Stream"></i>` : '';
@@ -1833,7 +1843,7 @@ function playVideo(url, lecTitle, chName, subName, courseIdx, targetTimestamp = 
 
   // Highlight active item
   document.querySelectorAll('.lecture-item').forEach(el => {
-    if (el.dataset.url === url) {
+    if (el._lecUrl === url || (tgUrl && el._lecTgUrl === tgUrl)) {
       el.classList.add('active');
     } else {
       el.classList.remove('active');
@@ -1923,7 +1933,7 @@ window.markCurrentAsWatched = function () {
     showToast("লেকচার চিহ্নিত করা হয়েছে (Watched)!");
 
     document.querySelectorAll('.lecture-item').forEach(el => {
-      if (el.dataset.url === currentPlayingLec.url) {
+      if (el._lecUrl === currentPlayingLec.url || (currentPlayingLec.tg_url && el._lecTgUrl === currentPlayingLec.tg_url)) {
         el.classList.add('completed');
         const icon = el.querySelector('.play-icon');
         if (icon) icon.className = 'fa-solid fa-circle-check play-icon';
